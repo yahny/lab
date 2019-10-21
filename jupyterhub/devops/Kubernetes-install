@@ -1,0 +1,43 @@
+# https://zero-to-jupyterhub.readthedocs.io/en/latest/digital-ocean/step-zero-digital-ocean.html
+
+# https://www.digitalocean.com/community/cheatsheets/getting-started-with-kubernetes-a-kubectl-cheat-sheet?status=moved_permanently#installing-kubectl
+
+# https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-cluster-using-kubeadm-on-ubuntu-18-04#prerequisites
+
+
+
+
+openssl rand -hex 32
+helm repo add jupyterhub https://jupyterhub.github.io/helm-chart/
+helm repo update
+
+
+
+helm upgrade --install $RELEASE jupyterhub/jupyterhub \
+  --namespace $NAMESPACE  \
+  --version=0.8.2 \
+  --values config.yaml
+
+
+docker tag local-image:tagname new-repo:tagname
+docker push new-repo:tagname
+
+
+docker tag jupyter/minimal-notebook:nbgitpuller yahny/simotus:minimal-notebook
+docker push yahny/simotus:minimal-notebook
+# -------------------------------------------------------------------------------------------
+# on digitalocean: install k8s
+doctl kubernetes cluster kubeconfig save [clustername]
+doctl kubernetes cluster kubeconfig save simotus-k8s-1
+kubectl --namespace kube-system create serviceaccount tiller
+kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
+helm init --service-account tiller --history-max 200 --wait
+# helm init --upgrade --service-account tiller --history-max 200 --wait
+# helm init --client-only
+kubectl patch deployment tiller-deploy --namespace=kube-system --type=json --patch='[{"op": "add", "path": "/spec/template/spec/containers/0/command", "value": ["/tiller", "--listen=localhost:44134"]}]'
+
+# Deploy jupyterHub
+openssl rand -hex 32
+vim config.yaml
+helm repo add jupyterhub https://jupyterhub.github.io/helm-chart/
+helm repo update

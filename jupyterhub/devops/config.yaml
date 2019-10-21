@@ -1,0 +1,32 @@
+proxy:
+  secretToken: "cf6db2c2b3f1e572ff6718ee44f2319bc0612721cb36fefa2ac09063a048e6e7"
+singleuser:
+  extraEnv:
+    EDITOR: "vim"
+  image:
+    name: yahny/simotus
+    tag: minimal-notebook
+  lifecycleHooks:
+    postStart:
+      exec:
+        command:
+          [
+            "gitpuller",
+            "https://github.com/Simotus/notebooks",
+            "master",
+            "research",
+          ]
+auth:
+  type: github
+  github:
+    clientId: "8610b5b1293f968d7cb5"
+    clientSecret: "a3e5ecf55034998387aa3b0919fa89a781a19f74"
+    callbackUrl: "http://167.99.24.189/hub/oauth_callback"
+    # orgWhitelist:
+    #   - "Simotus"
+  scopes:
+    - "read:user"
+  admin:
+    access: true
+    users:
+      - yahny
